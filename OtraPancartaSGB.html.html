@@ -1,0 +1,127 @@
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pancarta de Sugerencias</title>
+  <style>
+    table { border-collapse: collapse; }
+    td { border: 2px solid black; width: 400px; height: 200px; vertical-align: top; padding: 10px; }
+    img { max-width: 100%; max-height: 100px; display: block; margin-bottom: 6px; }
+    textarea { width: 100%; height: 80px; }
+    #modal { display: none; border: 3px solid black; padding: 20px; margin-top: 20px; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+ 
+<h1>Pancarta de Sugerencias</h1>
+<hr>
+ 
+<button onclick="abrirModal()">Agregar sugerencia</button>
+<button onclick="activarEliminar()">Eliminar sugerencia</button>
+<span id="modoLabel" style="color:red; margin-left:10px;"></span>
+ 
+<br><br>
+ 
+<table>
+  <tr>
+    <td id="slot0"><i>Slot 1 vacío</i></td>
+    <td id="slot1"><i>Slot 2 vacío</i></td>
+  </tr>
+  <tr>
+    <td id="slot2"><i>Slot 3 vacío</i></td>
+    <td id="slot3"><i>Slot 4 vacío</i></td>
+  </tr>
+</table>
+ 
+<div id="modal">
+  <h3>Nueva sugerencia</h3>
+  <label>Texto:</label><br>
+  <textarea id="inputTexto" placeholder="Escribe tu sugerencia..."></textarea>
+  <br><br>
+  <label>Imagen (opcional):</label><br>
+  <input type="file" id="inputImagen" accept="image/*">
+  <br><br>
+  <button onclick="confirmar()">Confirmar</button>
+  <button onclick="cerrarModal()">Cancelar</button>
+</div>
+ 
+<script>
+  var sugerencias = [null, null, null, null];
+  var modoEliminar = false;
+  var imagenBase64 = null;
+ 
+  document.getElementById('inputImagen').onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) { imagenBase64 = ev.target.result; };
+    reader.readAsDataURL(file);
+  };
+ 
+  function abrirModal() {
+    var libre = sugerencias.indexOf(null);
+    if (libre === -1) { alert('Ya hay 4 sugerencias. Eliminá una antes de agregar.'); return; }
+    document.getElementById('inputTexto').value = '';
+    document.getElementById('inputImagen').value = '';
+    imagenBase64 = null;
+    document.getElementById('modal').style.display = 'block';
+  }
+ 
+  function cerrarModal() {
+    document.getElementById('modal').style.display = 'none';
+  }
+ 
+  function confirmar() {
+    var texto = document.getElementById('inputTexto').value.trim();
+    if (!texto) { alert('Escribí un texto para la sugerencia.'); return; }
+    var libre = sugerencias.indexOf(null);
+    sugerencias[libre] = { texto: texto, imagen: imagenBase64 };
+    cerrarModal();
+    renderizar();
+  }
+ 
+  function activarEliminar() {
+    if (!sugerencias.some(function(s){ return s !== null; })) {
+      alert('No hay sugerencias para eliminar.');
+      return;
+    }
+    modoEliminar = !modoEliminar;
+    document.getElementById('modoLabel').textContent = modoEliminar ? '(Hacé clic en una sugerencia para eliminarla)' : '';
+    renderizar();
+  }
+ 
+  function eliminar(i) {
+    if (!modoEliminar) return;
+    sugerencias[i] = null;
+    // compactar
+    var llenas = sugerencias.filter(function(s){ return s !== null; });
+    for (var j = 0; j < 4; j++) sugerencias[j] = llenas[j] || null;
+    if (!sugerencias.some(function(s){ return s !== null; })) {
+      modoEliminar = false;
+      document.getElementById('modoLabel').textContent = '';
+    }
+    renderizar();
+  }
+ 
+  function renderizar() {
+    for (var i = 0; i < 4; i++) {
+      var td = document.getElementById('slot' + i);
+      var s = sugerencias[i];
+      if (!s) {
+        td.innerHTML = '<i>Slot ' + (i+1) + ' vacío</i>';
+        td.style.background = '';
+        td.onclick = null;
+      } else {
+        var html = '<b>Sugerencia ' + (i+1) + '</b><br>';
+        if (s.imagen) html += '<img src="' + s.imagen + '">';
+        html += '<p>' + s.texto.replace(/\n/g,'<br>') + '</p>';
+        td.innerHTML = html;
+        td.style.background = modoEliminar ? '#ffe0e0' : '';
+        td.onclick = modoEliminar ? (function(idx){ return function(){ eliminar(idx); }; })(i) : null;
+        td.style.cursor = modoEliminar ? 'pointer' : 'default';
+      }
+    }
+  }
+</script>
+ 
+</body>
+</html>
