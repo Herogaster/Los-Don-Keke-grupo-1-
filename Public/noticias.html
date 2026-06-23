@@ -18,66 +18,138 @@
             backdrop-filter: none !important;
         }
 
+        /* ---- Tabla / cuadros de noticias ---- */
         .cuadro {
             width: 100%;
-            max-width: 820px;
             margin: 30px auto;
-            border-collapse: separate;
-            border-spacing: 12px;
-            background: transparent;
-            border: none;
-            box-shadow: none;
+            border-collapse: collapse;
+            background: white;
+            border: 14px double var(--accent-blue);
+            box-shadow: 0 20px 45px rgba(10, 24, 40, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            table-layout: fixed;
         }
 
         .cuadro td {
-            border: 6px double var(--accent-blue);
-            padding: 40px 20px;
+            width: 50%;
+            padding: 60px 25px;
+            border: 10px double var(--accent-blue);
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.96),
+                rgba(240, 245, 250, 0.92)
+            );
             text-align: center;
-            font-size: 1.6rem;
+            vertical-align: middle;
+            cursor: pointer;
+            transition: 0.3s;
+            word-break: break-word;
+            box-sizing: border-box;
+            font-size: clamp(1rem, 3vw, 1.6rem);
             font-weight: bold;
             color: var(--accent-blue);
-            min-width: 340px;
-            min-height: 190px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(240,245,250,0.9));
-            vertical-align: middle;
-            border-radius: 12px;
+            min-height: 260px;
+            height: 260px;
         }
 
         .cuadro td:hover {
             background: linear-gradient(180deg, var(--accent-gold), #f0d9a0);
             color: #103b66;
-            transform: scale(1.02);
         }
 
         .cuadro td img {
-            max-width: 95%;
-            max-height: 130px;
-            object-fit: contain;
-            border-radius: 8px;
-            margin: 8px auto;
             display: block;
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            object-fit: cover;
+            margin: 0 auto 20px auto;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
         }
 
+        /* ---- Panel lateral (desktop: desliza desde la derecha) ---- */
         .panel-lateral {
             position: fixed;
-            right: -500px;
+            right: -520px;
             top: 130px;
             width: 460px;
+            max-width: calc(100vw - 24px);
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
             background: var(--surface-strong);
             border: 3px solid var(--accent-blue);
             border-radius: 16px;
             padding: 25px;
             box-shadow: 0 20px 45px rgba(10, 24, 40, 0.3);
-            transition: all 0.5s ease;
+            transition: right 0.5s ease, opacity 0.5s ease;
             z-index: 1000;
             backdrop-filter: blur(12px);
+            opacity: 0;
+            pointer-events: none;
         }
 
         .panel-lateral.activo {
             right: 20px;
             opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* En mobile: modal centrado en vez de deslizante lateral */
+        @media (max-width: 600px) {
+            .panel-lateral {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                right: auto;
+                transform: translate(-50%, -40%);
+                width: calc(100vw - 32px);
+                max-width: 420px;
+                max-height: 80vh;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease, transform 0.3s ease;
+            }
+
+            .panel-lateral.activo {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            /* Fondo oscuro detrás del modal en mobile */
+            .panel-lateral.activo::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.45);
+                z-index: -1;
+            }
+
+            /* Cuadros apilados en mobile */
+            .cuadro {
+                border-radius: 12px;
+            }
+
+            .cuadro,
+            .cuadro tbody,
+            .cuadro tr {
+                display: block;
+                width: 100%;
+            }
+
+            .cuadro tr {
+                display: flex;
+                gap: 0;
+            }
+
+            .cuadro td {
+                flex: 1 1 0;
+                width: auto;
+                padding: 20px 10px;
+                font-size: 1.1rem;
+            }
         }
 
         .panel-header {
@@ -123,6 +195,14 @@
             border-radius: 16px;
             padding: 18px;
             margin-bottom: 20px;
+        }
+
+        #textoActual {
+            width: 100%;
+            box-sizing: border-box;
+            resize: none;
+            overflow: hidden;
+            /* Sin min-height: el scrollHeight arranca en 0 cuando está vacío */
         }
 
         .btn-adjuntar {
@@ -188,6 +268,48 @@
         @keyframes pulse {
             0%, 100% { background-color: rgba(211, 47, 47, 0.2); }
             50% { background-color: rgba(211, 47, 47, 0.4); }
+        }
+
+        /* ==================== NAVBAR RESPONSIVE ==================== */
+        /* Aseguramos que el header nunca corte los ítems */
+        .header-container {
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .nav-links {
+            flex-wrap: wrap;
+            gap: 4px 6px;
+        }
+
+        .nav-links li a {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 10px 12px;
+            }
+
+            .nav-links {
+                justify-content: center;
+                padding: 6px 0 4px;
+            }
+
+            .nav-links li a {
+                font-size: 0.85rem;
+                padding: 6px 10px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .nav-links li a {
+                font-size: 0.78rem;
+                padding: 5px 8px;
+            }
         }
     </style>
 </head>
@@ -326,13 +448,62 @@
             return posiciones[n-1];
         }
 
+        // ---- Conteo de renglones visuales con div espejo ----
+        // Usamos un div invisible con las mismas propiedades que el textarea
+        // para medir cuántas líneas ocupa el texto real (incluyendo wrap).
+        let divEspejo = null;
+
+        function crearDivEspejo(textarea) {
+            if (divEspejo) return;
+            const st = window.getComputedStyle(textarea);
+            divEspejo = document.createElement('div');
+            divEspejo.style.cssText = `
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+                visibility: hidden;
+                pointer-events: none;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                width: ${textarea.clientWidth}px;
+                font-family: ${st.fontFamily};
+                font-size: ${st.fontSize};
+                font-weight: ${st.fontWeight};
+                line-height: ${st.lineHeight};
+                letter-spacing: ${st.letterSpacing};
+                padding: ${st.paddingTop} ${st.paddingRight} ${st.paddingBottom} ${st.paddingLeft};
+                border: ${st.border};
+                box-sizing: border-box;
+            `;
+            document.body.appendChild(divEspejo);
+        }
+
+        function contarRenglonesVisuales(textarea) {
+            // Sin texto → siempre 0
+            if (!textarea.value) return 0;
+
+            crearDivEspejo(textarea);
+
+            const st = window.getComputedStyle(textarea);
+            // Actualizamos el ancho por si cambió (ej: rotación de pantalla)
+            divEspejo.style.width = textarea.clientWidth + 'px';
+
+            // Copiamos el texto al espejo para medir su altura real
+            divEspejo.textContent = textarea.value;
+            const altoCont = divEspejo.scrollHeight;
+
+            const lineHeight = parseFloat(st.lineHeight) || parseFloat(st.fontSize) * 1.4;
+            return Math.max(1, Math.round(altoCont / lineHeight));
+        }
+
         function actualizarContador() {
             const textarea = document.getElementById('textoActual');
-            const lineas = (textarea.value.match(/\n/g) || []).length + 1; 
-            
+            const lineas = contarRenglonesVisuales(textarea);
+
             const contador = document.getElementById('contador');
             contador.textContent = `${lineas} / ${MAX_RENGLONES} renglones`;
-            
+
             if (lineas >= MAX_RENGLONES) contador.style.color = '#d32f2f';
             else if (lineas >= MAX_RENGLONES - 1) contador.style.color = '#ff9800';
             else contador.style.color = '#888';
@@ -340,11 +511,12 @@
 
         function limitarRenglones() {
             const textarea = document.getElementById('textoActual');
-            let lineas = (textarea.value.match(/\n/g) || []).length + 1;
-            
-            if (lineas > MAX_RENGLONES) {
-                const lineasArray = textarea.value.split('\n');
-                textarea.value = lineasArray.slice(0, MAX_RENGLONES).join('\n');
+
+            if (contarRenglonesVisuales(textarea) > MAX_RENGLONES) {
+                // Recortamos carácter a carácter usando el textarea real
+                while (textarea.value.length > 0 && contarRenglonesVisuales(textarea) > MAX_RENGLONES) {
+                    textarea.value = textarea.value.slice(0, -1);
+                }
             }
             actualizarContador();
         }
